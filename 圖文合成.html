@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 爆款短影音封面產生器 - TikTok / Shorts 專用</title>
+<style>
+:root {
+--primary-red: #FF0050; /* TikTok 紅 */
+--primary-cyan: #00F2FE; /* TikTok 青 */
+--bg-color: #0f172a; /* 深色工作區背景 */
+--card-bg: #1e293b;
+--text-main: #f8fafc;
+--text-muted: #94a3b8;
+--border-color: #334155;
+--accent-yellow: #FACC15;
+}
+
+```
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Arial Black", "Helvetica Neue", sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 20px;
+        background-image: radial-gradient(circle at top right, #1e1b4b, #0f172a);
+    }
+
+    .container {
+        background-color: var(--card-bg);
+        width: 100%;
+        max-width: 900px;
+        border-radius: 16px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .header {
+        text-align: center;
+    }
+
+    .header h1 {
+        font-size: 28px;
+        font-weight: 900;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        background: linear-gradient(135deg, var(--primary-cyan), var(--primary-red));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0px 4px 15px rgba(255, 0, 80, 0.3);
+    }
+
+    .header p {
+        color: var(--text-muted);
+        font-size: 15px;
+        font-weight: 500;
+    }
+
+    .controls {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        background: #0b1120;
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+    }
+
+    .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .input-group label {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text-main);
+        letter-spacing: 0.5px;
+    }
+
+    .file-upload-wrapper {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+        width: 100%;
+    }
+
+    .file-upload-wrapper input[type="file"] {
+        font-size: 100px;
+        position: absolute;
+        left: 0;
+        top: 0;
+        opacity: 0;
+        cursor: pointer;
+        height: 100%;
+    }
+
+    .btn-upload {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 14px;
+        background-color: #1e293b;
+        color: var(--text-main);
+        border-radius: 10px;
+        font-weight: 600;
+        border: 2px dashed #475569;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+
+    .file-upload-wrapper:hover .btn-upload {
+        background-color: #334155;
+        border-color: var(--primary-cyan);
+        color: var(--primary-cyan);
+    }
+
+    input[type="text"] {
+        padding: 14px 16px;
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 500;
+        outline: none;
+        background: #1e293b;
+        color: white;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input[type="text"]::placeholder {
+        color: #64748b;
+    }
+
+    input[type="text"]:focus {
+        border-color: var(--primary-red);
+        box-shadow: 0 0 0 3px rgba(255, 0, 80, 0.2);
+    }
+
+    .btn-primary {
+        background: linear-gradient(90deg, var(--primary-red), #e11d48);
+        color: white;
+        border: none;
+        padding: 16px;
+        border-radius: 10px;
+        font-size: 18px;
+        font-weight: 900;
+        letter-spacing: 1px;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-top: 8px;
+        box-shadow: 0 4px 15px rgba(255, 0, 80, 0.4);
+        text-transform: uppercase;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 0, 80, 0.6);
+    }
+
+    .btn-primary:active:not(:disabled) {
+        transform: translateY(1px);
+    }
+
+    .btn-primary:disabled {
+        background: #475569;
+        box-shadow: none;
+        cursor: not-allowed;
+        color: #94a3b8;
+    }
+
+    /* 新增：下載按鈕樣式 (延續紫色風格) */
+    .btn-download {
+        background: linear-gradient(135deg, #8b3dff, #6320ee);
+        color: white;
+        border: none;
+        padding: 16px;
+        border-radius: 10px;
+        font-size: 18px;
+        font-weight: 900;
+        letter-spacing: 1px;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 15px rgba(139, 61, 255, 0.4);
+        text-transform: uppercase;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-download:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(139, 61, 255, 0.6);
+    }
+
+    .btn-download:active {
+        transform: translateY(1px);
+    }
+
+    .hidden {
+        display: none !important;
+    }
+
+    .preview-section {
+        position: relative;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #000;
+        border-radius: 12px;
+        overflow: hidden;
+        min-height: 400px;
+        box-shadow: inset 0 2px 20px rgba(0,0,0,0.8);
+        border: 1px solid #334155;
+        background-image: linear-gradient(45deg, #111 25%, transparent 25%),
+                          linear-gradient(-45deg, #111 25%, transparent 25%),
+                          linear-gradient(45deg, transparent 75%, #111 75%),
+                          linear-gradient(-45deg, transparent 75%, #111 75%);
+        background-size: 20px 20px;
+        background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    }
+
+    canvas {
+        max-width: 100%;
+        max-height: 70vh;
+        object-fit: contain;
+        display: block;
+    }
+
+    .placeholder-text {
+        color: #475569;
+        font-weight: 700;
+        position: absolute;
+        font-size: 20px;
+        letter-spacing: 2px;
+    }
+
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(8px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+    }
+
+    .loading-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid #334155;
+        border-top: 5px solid var(--primary-cyan);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 16px;
+    }
+
+    .loading-text {
+        font-weight: 800;
+        color: var(--text-main);
+        font-size: 16px;
+        letter-spacing: 1px;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+```
+
+</head>
+<body>
+
+```
+<div class="container">
+    <div class="header">
+        <h1>🔥 爆款短影音封面產生器</h1>
+        <p>自動生成 TikTok / Shorts 高視覺衝擊力標題封面</p>
+    </div>
+
+    <div class="controls">
+        <div class="input-group">
+            <label>1. 上傳原圖 / 影片截圖</label>
+            <div class="file-upload-wrapper">
+                <div class="btn-upload" id="uploadBtnText">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="<http://www.w3.org/2000/svg>"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    點擊選擇圖片 (JPG/PNG)
+                </div>
+                <input type="file" id="imageInput" accept="image/png, image/jpeg, image/jpg">
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="textInput">2. 輸入超吸睛標題 (系統會自動分層級)</label>
+            <input type="text" id="textInput" placeholder="例如：超狂黑科技！一秒提升質感穿搭讓你變潮男">
+        </div>
+
+        <button class="btn-primary" id="generateBtn" disabled>⚡ 產生爆款封面</button>
+    </div>
+
+    <div class="preview-section">
+        <span class="placeholder-text" id="placeholderText">預覽區</span>
+        <canvas id="previewCanvas"></canvas>
+
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="spinner"></div>
+            <p class="loading-text" id="loadingText">AI 正在計算最佳衝擊力構圖...</p>
+        </div>
+    </div>
+
+    <!-- 新增：下載按鈕 (預設隱藏，排版完成後顯示) -->
+    <button class="btn-download hidden" id="downloadBtn">
+        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="<http://www.w3.org/2000/svg>"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+        下載封面
+    </button>
+</div>
+
+<script>
+    const imageInput = document.getElementById('imageInput');
+    const uploadBtnText = document.getElementById('uploadBtnText');
+    const textInput = document.getElementById('textInput');
+    const generateBtn = document.getElementById('generateBtn');
+    const canvas = document.getElementById('previewCanvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const placeholderText = document.getElementById('placeholderText');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const loadingText = document.getElementById('loadingText');
+    const downloadBtn = document.getElementById('downloadBtn'); // 新增選取下載按鈕
+
+    let currentImage = null;
+
+    // 初始化圖片上傳
+    imageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        uploadBtnText.innerHTML = `
+            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="<http://www.w3.org/2000/svg>"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            已選擇：${file.name}
+        `;
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+                currentImage = img;
+                canvas.width = img.width;
+                canvas.height = img.height;
+                placeholderText.style.display = 'none';
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
+                checkEnableButton();
+                downloadBtn.classList.add('hidden'); // 新圖片上傳時隱藏下載按鈕
+            }
+            img.src = event.target.result;
+        }
+        reader.readAsDataURL(file);
+    });
+
+    // 綁定輸入框事件，若文字有更改則隱藏下載按鈕，提示需要重新產生
+    textInput.addEventListener('input', function() {
+        checkEnableButton();
+        downloadBtn.classList.add('hidden');
+    });
+
+    function checkEnableButton() {
+        generateBtn.disabled = !(currentImage && textInput.value.trim() !== '');
+    }
+
+    generateBtn.addEventListener('click', async function() {
+        const text = textInput.value.trim();
+        if (!currentImage || !text) return;
+
+        loadingOverlay.classList.add('active');
+        generateBtn.disabled = true;
+
+        loadingText.innerText = "掃描畫面主體並避開重要人物...";
+        await new Promise(r => setTimeout(r, 500));
+        loadingText.innerText = "套用短影音高衝擊力字體與陰影特效...";
+        await new Promise(r => setTimeout(r, 500));
+
+        drawViralCover(text);
+
+        loadingOverlay.classList.remove('active');
+        generateBtn.disabled = false;
+        downloadBtn.classList.remove('hidden'); // 排版產生成功後顯示下載按鈕
+    });
+
+    // ==========================================
+    // 新增：下載圖片功能
+    // ==========================================
+    downloadBtn.addEventListener('click', function() {
+        // 將 Canvas 轉換成 Base64 圖片 (PNG 格式)
+        const dataURL = canvas.toDataURL('image/png');
+
+        // 建立虛擬 <a> 標籤觸發下載
+        const link = document.createElement('a');
+        const timestamp = Date.now(); // 取得時間戳
+        link.download = `cover_${timestamp}.png`;
+        link.href = dataURL;
+
+        // 觸發點擊並移除節點
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+
+    // ==========================================
+    // 核心演算法：影像分析與抖音爆款排版引擎
+    // ==========================================
+
+    // 分析指定區域的亮度和複雜度（變異數）以避開主體
+    function analyzeRegion(context, x, y, width, height) {
+        const sx = Math.max(0, Math.floor(x));
+        const sy = Math.max(0, Math.floor(y));
+        const sw = Math.min(context.canvas.width - sx, Math.floor(width));
+        const sh = Math.min(context.canvas.height - sy, Math.floor(height));
+
+        if (sw <= 0 || sh <= 0) return { brightness: 128, variance: 0 };
+
+        const imageData = context.getImageData(sx, sy, sw, sh);
+        const data = imageData.data;
+        let sum = 0, pixels = [];
+        const step = 4 * 4;
+        for (let i = 0; i < data.length; i += step) {
+            const r = data[i], g = data[i + 1], b = data[i + 2];
+            const luma = Math.floor((r * 299 + g * 587 + b * 114) / 1000);
+            sum += luma;
+            pixels.push(luma);
+        }
+        const avgBrightness = sum / pixels.length;
+        let diffSum = 0;
+        for(let i = 0; i < pixels.length; i++) diffSum += Math.pow(pixels[i] - avgBrightness, 2);
+        return { brightness: Math.floor(avgBrightness), variance: diffSum / pixels.length };
+    }
+
+    // 智慧尋找最佳放置點：短影音封面偏好 左上、中上、左下
+    function findViralPosition(boxWidth, boxHeight) {
+        const marginX = Math.max(canvas.width * 0.05, 40);
+        const marginY = Math.max(canvas.height * 0.08, 60); // 避開上下可能有的 UI (如 TikTok/IG Reels UI)
+
+        const candidates = [
+            { id: 'top-left', x: marginX, y: marginY },
+            { id: 'top-center', x: (canvas.width - boxWidth) / 2, y: marginY },
+            { id: 'bottom-left', x: marginX, y: canvas.height - boxHeight - marginY - 100 }, // 避開底部文案區
+            { id: 'bottom-center', x: (canvas.width - boxWidth) / 2, y: canvas.height - boxHeight - marginY - 100 }
+        ];
+
+        let bestCandidate = candidates[0];
+        let lowestVariance = Infinity;
+        let bestBrightness = 128;
+
+        candidates.forEach(pos => {
+            const stats = analyzeRegion(ctx, pos.x, pos.y, boxWidth, boxHeight);
+            // 偏好上方與左側
+            let penalty = 1.0;
+            if (pos.id.includes('bottom')) penalty *= 1.2;
+            if (pos.id.includes('center')) penalty *= 1.1;
+
+            const score = stats.variance * penalty;
+            if (score < lowestVariance) {
+                lowestVariance = score;
+                bestCandidate = pos;
+                bestBrightness = stats.brightness;
+            }
+        });
+
+        return { x: bestCandidate.x, y: bestCandidate.y, brightness: bestBrightness };
+    }
+
+    // 解析文字，自動拆解出「主標題」與「副標題」，並找出「關鍵字」
+    function parseViralText(text) {
+        let mainTitle = text;
+        let subTitle = "";
+        let highlight = "";
+
+        // 1. 拆分主/副標題 (以標點符號或空白拆分)
+        const splitMatch = text.match(/^(.*?[！!，,、\\s])(.*)$/);
+        if (splitMatch && splitMatch[1].length > 2 && splitMatch[1].length < 15) {
+            mainTitle = splitMatch[1].trim();
+            subTitle = splitMatch[2].trim();
+        } else if (text.length > 10) {
+            // 如果沒有標點符號但很長，強制從中間偏前切開
+            const cutIndex = Math.floor(text.length * 0.4);
+            mainTitle = text.substring(0, cutIndex);
+            subTitle = text.substring(cutIndex);
+        }
+
+        // 2. 尋找要 Highlight (黃色/紅色) 的關鍵字
+        // 優先找數字，若無數字則抓前2-3個字
+        const numMatch = mainTitle.match(/\\d+/);
+        if (numMatch) {
+            highlight = numMatch[0];
+        } else {
+            highlight = mainTitle.substring(0, Math.min(3, mainTitle.length - 1));
+        }
+
+        // 如果副標題太長，幫副標題換行
+        let subLines = [];
+        if (subTitle) {
+            const maxSubLength = 12; // 每行大約 12 個中文字
+            for (let i = 0; i < subTitle.length; i += maxSubLength) {
+                subLines.push(subTitle.substring(i, i + maxSubLength));
+            }
+        }
+
+        return { mainTitle, subLines, highlight };
+    }
+
+    // 繪製具有極強衝擊力的文字 (黑邊框 + 粗體 + 陰影)
+    function drawImpactText(ctx, text, highlightStr, x, y, fontSize, isMain) {
+        // 設定特粗黑體
+        ctx.font = `900 italic ${fontSize}px "Arial Black", "PingFang TC", "Microsoft JhengHei", sans-serif`;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+
+        // 描邊設定 (黑邊框)
+        ctx.lineJoin = 'round';
+        ctx.miterLimit = 2;
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = fontSize * (isMain ? 0.2 : 0.15); // 主標題邊框更粗
+
+        // 陰影設定 (讓立體感爆棚)
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+        ctx.shadowBlur = isMain ? 15 : 10;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = fontSize * 0.1;
+
+        // 先畫一圈黑邊與陰影
+        ctx.strokeText(text, x, y);
+
+        // 清除陰影準備填色
+        ctx.shadowColor = 'transparent';
+
+        // 填色邏輯：若有 highlight 字眼，獨立變色
+        if (isMain && highlightStr && text.includes(highlightStr)) {
+            const parts = text.split(highlightStr);
+            let currentX = x;
+
+            parts.forEach((part, index) => {
+                // 畫普通文字 (白色)
+                if (part) {
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillText(part, currentX, y);
+                    currentX += ctx.measureText(part).width;
+                }
+                // 畫關鍵字 (亮黃色 / 紅色)
+                if (index < parts.length - 1) {
+                    // 使用 TikTok/Shorts 常見的亮黃色或亮青色
+                    ctx.fillStyle = '#FACC15'; // 亮黃色
+                    ctx.fillText(highlightStr, currentX, y);
+                    currentX += ctx.measureText(highlightStr).width;
+                }
+            });
+        } else {
+            ctx.fillStyle = isMain ? '#FFFFFF' : '#F1F5F9'; // 副標題稍微暗一點點的白
+            ctx.fillText(text, x, y);
+        }
+    }
+
+    // 主排版繪製流程
+    function drawViralCover(text) {
+        // 1. 重繪原圖
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(currentImage, 0, 0);
+
+        // 2. 視覺壓暗 (Vignette) 凸顯文字，Shorts 封面必備技巧
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, 'rgba(0,0,0,0.4)'); // 上半部壓暗
+        gradient.addColorStop(0.5, 'rgba(0,0,0,0.1)'); // 中間保留細節
+        gradient.addColorStop(1, 'rgba(0,0,0,0.6)'); // 底部壓暗防 UI 遮擋
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // 3. 解析文案層級
+        const parsed = parseViralText(text);
+
+        // 4. 動態計算超大字體 (主標題高達 8%~12% 寬度)
+        const mainFontSize = Math.max(50, Math.floor(canvas.width * 0.08));
+        const subFontSize = mainFontSize * 0.55;
+
+        // 5. 計算排版區塊大小
+        ctx.font = `900 italic ${mainFontSize}px "Arial Black"`;
+        let maxTextWidth = ctx.measureText(parsed.mainTitle).width;
+
+        ctx.font = `900 italic ${subFontSize}px "Arial Black"`;
+        parsed.subLines.forEach(line => {
+            const w = ctx.measureText(line).width;
+            if (w > maxTextWidth) maxTextWidth = w;
+        });
+
+        // 背景卡片 Padding
+        const paddingX = mainFontSize * 0.6;
+        const paddingY = mainFontSize * 0.5;
+        const mainLineHeight = mainFontSize * 1.2;
+        const subLineHeight = subFontSize * 1.3;
+
+        const textTotalHeight = mainLineHeight + (parsed.subLines.length * subLineHeight);
+
+        const boxWidth = maxTextWidth + (paddingX * 2);
+        // 移除原本預留給角標的頂部空間
+        const boxHeight = textTotalHeight + (paddingY * 2);
+
+        // 6. 尋找最佳位置
+        const bestPos = findViralPosition(boxWidth, boxHeight);
+        const boxX = bestPos.x;
+        const boxY = bestPos.y;
+
+        // 7. 繪製封面感背景框 (帶有高科技感與衝擊力的深色卡片)
+        ctx.save();
+        // 黑底半透明框，增強對比度
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
+        if (ctx.roundRect) {
+            ctx.beginPath();
+            ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 16);
+            ctx.fill();
+        } else {
+            ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
+        }
+
+        // 左側高光粗線條 (TikTok 紅)
+        ctx.fillStyle = '#FF0050';
+        if (ctx.roundRect) {
+            ctx.beginPath();
+            // 只圓左邊的角
+            ctx.roundRect(boxX, boxY, mainFontSize * 0.2, boxHeight, [16, 0, 0, 16]);
+            ctx.fill();
+        } else {
+            ctx.fillRect(boxX, boxY, mainFontSize * 0.2, boxHeight);
+        }
+        ctx.restore();
+
+        // 8. 繪製主標題 (已移除上方角標)
+        const textStartX = boxX + paddingX + (mainFontSize * 0.2); // 避開左側紅線
+        let textStartY = boxY + paddingY; // 恢復正常間距，不需要再避開角標
+
+        drawImpactText(ctx, parsed.mainTitle, parsed.highlight, textStartX, textStartY, mainFontSize, true);
+        textStartY += mainLineHeight;
+
+        // 9. 繪製副標題
+        textStartY += (mainFontSize * 0.1); // 主副標題之間留點空隙
+        parsed.subLines.forEach(line => {
+            drawImpactText(ctx, line, null, textStartX, textStartY, subFontSize, false);
+            textStartY += subLineHeight;
+        });
+    }
+</script>
+```
+
+</body>
+</html>
